@@ -1,0 +1,65 @@
+body {
+    background-color: #bbc5f8;
+    color: #6a5acd;
+}
+
+h2 {
+    font-weight: normal
+}
+
+header {
+    font-size: 3rem;
+}
+
+.page-content {
+  font-family: "Monocraft", Inter;
+  font-weight: normal;
+  font-style: normal;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 1.5rem;
+  width: 55%;
+}
+
+.card {
+    background-color: #cfd7fd;
+    padding: 20px;
+    border-radius: 4px;
+    margin: 10px 10px;
+}
+
+.card-list {
+    list-style-type: ">> ";
+}
+
+.card-list a {
+    text-decoration: none;
+    color: #6a5acd;
+}
+
+.card-list a:hover {
+    text-decoration: underline;
+}
+
+.image-container {
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    margin-left: auto;
+    margin-right: auto;
+    gap: 20px;
+}
+
+.perspective {
+    width:300px;
+    border-radius: 4px;
+}
+
+.selfie {
+    width: 250px;
+    border-radius: 4px;
+}
+
+.dolly {
+    width: 250px;
+}
