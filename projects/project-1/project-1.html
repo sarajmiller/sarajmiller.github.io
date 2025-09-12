@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="../../css/fonts.css">
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="preload" href="/fonts/Monocraft.woff2" as="font" type="./fonts/woff2" crossorigin="anonymous">
+    <title>CS 180 Project 0</title>
+</head>
+<body>
+    <div id="background"></div>
+    <div class="page-content">
+        <header>
+            Sara J. Miller ~ CS 180
+        </header>
+
+        <h1>Project 1: Colorizing the Prokudin-Gorskii photo collection</h1>
+        <br>
+
+        <h2>Introduction</h2>
+
+        <div class="card">
+            This project was inspired by the Russian photographer 
+            Sergei Mikhailovich Prokudin-Gorsky 1863-1944). Beginning in 1907, he
+            traveled across the Russian Empire to take color photographs of everything he saw.
+        </div>
+        <br>
+
+        <h2>Naïve Approach</h2>
+        <div class="card">
+
+
+            My approach for aligning the R, G, and B panels was to fix one of the panels
+            (say, the blue panel) and align the other panels on top of it. This naive approach
+            produced the following on one of the example images:
+
+            <div class="image-container">
+                <img src="./images/cathedral_unaligned.jpg" alt="" class="single-image">
+                <div>cathedral.jpg</div>
+            </div>
+
+            We can see colors now in the image, but it's easy to tell that the 
+            red, blue, and green panels are not aligned. Note that I cropped all the images
+             before stacking them.
+        </div>
+        <br>
+
+        <h2>Better Approach</h2>
+        <div class="card">
+            To align the R, G, and B panels, I fixed one of the panels (the blue one) and shifted the other
+            panels around to align them on top of it. When shifting the panels, I used one of two methods over a 
+            30 x 30 pixel window 
+            to determine how "similar" two panels are on top of each other after shifting:
+            <ul class="card-list">
+                <li class="card-list-item">Euclidean distance</li>
+                <li class=""card-list-item>Normalized Cross Correlation - NCC</li>
+            </ul>
+            Here are examples of how each formula performed for small images:
+            <br>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/cathedral_euclidean.jpg" alt="">
+                    <div class="caption">
+                        Euclidean distance
+
+                    </div>
+                </div>
+                <div class="image">
+                    <img src="./images/cathedral_NCC.jpg" alt="">
+                    <div class="caption">
+                        NCC
+                    </div>
+                </div>
+            </div>
+            Using the Euclidean distance as a comparison tool performed marginally better
+            than the naïve approach. Luckily, the NCC method performed great for this image!
+        </div>
+
+        <br>
+
+        <h2>Even Better: Pyramid Method</h2>
+        <div class="card">
+            While the previous method worked for the smaller jpg images, this method didn't 
+            work for the larger images due to the window for comparison being too small. 
+            We could increase the size of the window, but that would become expensive. Instead,
+             we can use the image pyramid method.
+        </div>
+
+
+        
+    </div>
+    
+</body>
+</html>
