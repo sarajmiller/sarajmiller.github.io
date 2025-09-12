@@ -5,9 +5,13 @@
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="preload" href="/fonts/Monocraft.woff2" as="font" type="./fonts/woff2" crossorigin="anonymous">
     <title>CS 180 Project 0</title>
+    <script src="./leaves.js" defer></script>
 </head>
 <body>
     <div id="background"></div>
+    <div class="leaf-container">
+        
+    </div>
     <div class="page-content">
         <header>
             Sara J. Miller ~ CS 180
@@ -17,25 +21,27 @@
         <br>
 
         <h2>Introduction</h2>
-
         <div class="card">
-            This project was inspired by the Russian photographer 
-            Sergei Mikhailovich Prokudin-Gorsky 1863-1944). Beginning in 1907, he
-            traveled across the Russian Empire to take color photographs of everything he saw.
+                <div class="card-text">
+                    This project was inspired by the Russian photographer
+                    Sergei Mikhailovich Prokudin-Gorsky 1863-1944). Beginning in 1907, he
+                    traveled across the Russian Empire to take color photographs of everything he saw.
+                </div>
         </div>
         <br>
 
         <h2>Naïve Approach</h2>
         <div class="card">
 
-
-            My approach for aligning the R, G, and B panels was to fix one of the panels
+                My approach for aligning the R, G, and B panels was to fix one of the panels
             (say, the blue panel) and align the other panels on top of it. This naive approach
             produced the following on one of the example images:
 
             <div class="image-container">
-                <img src="./images/cathedral_unaligned.jpg" alt="" class="single-image">
-                <div>cathedral.jpg</div>
+                <div class="image">
+                    <img src="./images/cathedral_unaligned.jpg" alt="" class="single-image">
+                    <div class="caption">cathedral.jpg</div>
+                </div>
             </div>
 
             We can see colors now in the image, but it's easy to tell that the 
@@ -79,14 +85,120 @@
 
         <h2>Even Better: Pyramid Method</h2>
         <div class="card">
-            While the previous method worked for the smaller jpg images, this method didn't 
-            work for the larger images due to the window for comparison being too small. 
-            We could increase the size of the window, but that would become expensive. Instead,
-             we can use the image pyramid method.
+            <div class="card-text">
+                While the previous method worked for the smaller jpg images, this method didn't
+                work for the larger images due to the window for comparison being too small.
+            </div>
+
+            <div class="card-text">
+                We could increase the size of the window, but that would become expensive. Instead,
+                we can use the image pyramid method. This worked great on some of the larger images, 
+                but for the Emir image we can see a problem:
+            </div>
+
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/emir_unaligned.jpg" alt="">
+                    <div class="caption">emir.tif after the pyramid method</div>
+                </div>
+            </div>
+
+            
+
         </div>
 
+        <h2>Running the Pyramid Algorithm on All Example Images</h2>
+        <div class="card">
+            <div class="card-text">Here's the result of my method on all of the example images: 
 
-        
+                <div class="image-container">
+                    <div class="image">
+                        <img src="./images/cathedral_aligned.jpg" alt="">
+                        <div class="caption">Red shift: (12, 3)</div>
+                        <div class="caption">Green shift: (5, 2)</div>
+                    </div>
+                    <div class="image">
+                        <img src="./images/monastery_aligned.jpg" alt="">
+                        <div class="caption">Red shift: (3, 2)</div>
+                        <div class="caption">Green shift: (-3, 2)</div>
+                    </div>
+                </div>
+                <div class="image-container">
+                    <div class="image">
+                        <img src="./images/tobolsk_aligned.jpg" alt="">
+                        <div class="caption">Red shift: (6, 3)</div>
+                        <div class="caption">Green shift: (3, 3)</div>
+                    </div>
+                    <div class="image">
+                        <img src="./images/harvesters_aligned.jpg" alt="">
+                        <div class="caption">Red shift: (59, 16)</div>
+                        <div class="caption">Green shift: (123, 13)</div>
+                    </div>
+                </div>
+                <div class="image-container">
+                    <div class="image">
+                        <img src="./images/icon_aligned.jpg" alt="">
+                        <div class="caption">Red shift: (41, 17)</div>
+                        <div class="caption">Green shift: (89, 23)</div>
+                    </div>
+                    <div class="image">
+                        <img src="./images/italil_aligned.jpg" alt="">
+                        <div class="caption">Red shift: (38, 21))</div>
+                        <div class="caption">Green shift: (76, 35))</div>
+                    </div>
+                </div>
+                <div class="image-container">
+                    <div class="image">
+                        <img src="./images/lastochikino_aligned.jpg" alt="">
+                        <div class="caption">Red shift: (75, -8)</div>
+                        <div class="caption">Green shift: (-2, -2)</div>
+                    </div>
+                    <div class="image">
+                        <img src="./images/lugano_aligned.jpg" alt="">
+                        <div class="caption">Red shift: (41, -16)</div>
+                        <div class="caption">Green shift: (92, -29)</div>
+                    </div>
+                </div>
+
+            </div>
+
+
+        </div>
+
+        <h2>Final Approach: Edge Detection</h2>
+        <div class="card">
+            <div class="card-text">
+                One of the images, specifically the last one (Emir), didn't align properly.
+                As a human, how would one manually align these images? Probably by aligning 
+                the edges in each panel together.
+            </div>
+            <div class="card-text">
+                A better method is to use edge detection to align 
+                the images by their images. 
+                OpenCV has a method called Canny for edge detection. Calling this method 
+                on each panel before shifting them produces the following image:
+            </div>
+
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/emir_edges.jpg" alt="">
+                    <div class="caption">Aligning after edge detection</div>
+                </div>
+            </div>
+            <div class="card-text">
+                These edges look good! Here's the final image, as well as the dimensions I shifted by (height, width):
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/emir_aligned.jpg"" alt="">
+                    <div class="caption">Red shift: (107, 40)</div>
+                    <div class="caption">Green shift: (49, 24)</div>
+                </div>
+            </div>
+        </div>
+
+        <br>
+
     </div>
     
 </body>

@@ -1,14 +1,85 @@
 body {
     background-color: #B4D6C1;
-    color: 	#358873;
+    color: 	white;
+}
+
+#background {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    z-index: -1;
+    top: 0;
+    left: 0;
+    background-image: url(../projects/project-1/images/minecraft_autumn.jpg);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+
+.leaf {
+    position: fixed;
+    background-repeat: no-repeat;
+    width: 100px;;
+    z-index: 1;
+    background-image: url(../projects//project-1/images/leaf_litter.png);
+    transform: rotate(180deg);
+    opacity: 0.8;
+    animation: fall linear infinite;
+}
+
+
+@keyframes fall {
+    0% {
+      transform: translateY(-100px) rotate(0deg); /* Start above view, no rotation */
+      opacity: 0;
+    }
+    10% {
+      opacity: 1; /* Fade in */
+    }
+    100% {
+      transform: translateY(100vh) rotate(720deg); /* Fall to bottom, rotate */
+      opacity: 0; /* Fade out */
+    }
+  }
+
+.leaf-container {
+    width: 100%;
+}
+
+#left {
+    top: 0;
+    left: 0;
+    width: 20%;
+}
+
+#right {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 20%;
+}
+
+h1 {
+    background: rgba(181,103,39, 0.8);
+    font-weight: bold;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 h2 {
-    font-weight: normal
+    margin-top: 0;
+    margin-bottom: 0;
+    font-weight: bold;
+    font-size: 35px;
 }
 
 header {
     font-size: 3rem;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    background: rgba(81, 46, 27, 0.6);
 }
 
 .page-content {
@@ -22,11 +93,16 @@ header {
 }
 
 .card {
-    background-color: #DFEAE2;
+    background-color: rgba(181,103,39, 0.6);
     padding: 20px;
     border-radius: 4px;
     margin: 10px 10px;
     font-size: 20px;
+}
+
+.card-text {
+    font-size: 20px;
+    margin-bottom: 20px;
 }
 
 .card-list {
@@ -57,12 +133,19 @@ header {
     justify-content: center;
 }
 
-.caption {
-    text-align: center;
+.image img {
+    width: 400px;
 }
 
-.single-image {
-    width: 50%;
+.bold {
+    font-weight: bold;
+}
+
+
+.caption {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .perspective {
