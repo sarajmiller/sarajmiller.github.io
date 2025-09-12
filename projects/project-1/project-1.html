@@ -16,6 +16,7 @@
         <header>
             Sara J. Miller ~ CS 180
         </header>
+        <br>
 
         <h1>Project 1: Colorizing the Prokudin-Gorskii photo collection</h1>
         <br>
@@ -25,7 +26,26 @@
                 <div class="card-text">
                     This project was inspired by the Russian photographer
                     Sergei Mikhailovich Prokudin-Gorsky 1863-1944). Beginning in 1907, he
-                    traveled across the Russian Empire to take color photographs of everything he saw.
+                    traveled across the Russian Empire to take color photographs of everything he saw using 
+                    red, green, and blue filters. He took the same photo 3 times, each time with a different filter.
+                </div>
+                <div class="image-container">
+                    <div class="image-third">
+                        <img src="./images/cathedral_blue.jpg" alt="">
+                        <div class="caption">Blue Panel</div>
+                    </div>
+                    <div class="image-third">
+                        <img src="./images/cathedral_green.jpg" alt="">
+                        <div class="caption">Green Panel</div>
+                    </div>
+                    <div class="image-third">
+                        <img src="./images/cathedral_red.jpg" alt="">
+                        <div class="caption">Red Panel</div>
+                    </div>
+                </div> 
+                <div class="card-text">
+                    By aligning each panel on top of each other, this creates a color image! In this project, 
+                    I wrote code using several methods to align the panels on top of each other to create colored images.
                 </div>
         </div>
         <br>
@@ -92,20 +112,20 @@
 
             <div class="card-text">
                 We could increase the size of the window, but that would become expensive. Instead,
-                we can use the image pyramid method. This worked great on some of the larger images, 
-                but for the Emir image we can see a problem:
+                we can use the image pyramid method. This worked great on most of the large images!
             </div>
 
             <div class="image-container">
                 <div class="image">
-                    <img src="./images/emir_unaligned.jpg" alt="">
-                    <div class="caption">emir.tif after the pyramid method</div>
+                    <img src="./images/lugano_aligned.jpg" alt="">
+                    <div class="caption">lugano.tif after image pyramid</div>
                 </div>
             </div>
 
             
 
         </div>
+        <br>
 
         <h2>Running the Pyramid Algorithm on All Example Images</h2>
         <div class="card">
@@ -114,11 +134,13 @@
                 <div class="image-container">
                     <div class="image">
                         <img src="./images/cathedral_aligned.jpg" alt="">
+                        <div class="caption">Cathedral</div>
                         <div class="caption">Red shift: (12, 3)</div>
                         <div class="caption">Green shift: (5, 2)</div>
                     </div>
                     <div class="image">
                         <img src="./images/monastery_aligned.jpg" alt="">
+                        <div class="caption">Monastery</div>
                         <div class="caption">Red shift: (3, 2)</div>
                         <div class="caption">Green shift: (-3, 2)</div>
                     </div>
@@ -126,11 +148,13 @@
                 <div class="image-container">
                     <div class="image">
                         <img src="./images/tobolsk_aligned.jpg" alt="">
+                        <div class="caption">Tobolsk</div>
                         <div class="caption">Red shift: (6, 3)</div>
                         <div class="caption">Green shift: (3, 3)</div>
                     </div>
                     <div class="image">
                         <img src="./images/harvesters_aligned.jpg" alt="">
+                        <div class="caption">Harvesters</div>
                         <div class="caption">Red shift: (59, 16)</div>
                         <div class="caption">Green shift: (123, 13)</div>
                     </div>
@@ -138,11 +162,13 @@
                 <div class="image-container">
                     <div class="image">
                         <img src="./images/icon_aligned.jpg" alt="">
+                        <div class="caption">Icon</div>
                         <div class="caption">Red shift: (41, 17)</div>
                         <div class="caption">Green shift: (89, 23)</div>
                     </div>
                     <div class="image">
                         <img src="./images/italil_aligned.jpg" alt="">
+                        <div class="caption">Italil</div>
                         <div class="caption">Red shift: (38, 21))</div>
                         <div class="caption">Green shift: (76, 35))</div>
                     </div>
@@ -150,20 +176,97 @@
                 <div class="image-container">
                     <div class="image">
                         <img src="./images/lastochikino_aligned.jpg" alt="">
+                        <div class="caption">Lastochikino</div>
                         <div class="caption">Red shift: (75, -8)</div>
                         <div class="caption">Green shift: (-2, -2)</div>
                     </div>
                     <div class="image">
                         <img src="./images/lugano_aligned.jpg" alt="">
+                        <div class="caption">Lugano</div>
                         <div class="caption">Red shift: (41, -16)</div>
                         <div class="caption">Green shift: (92, -29)</div>
+                    </div>
+                </div>
+                <div class="image-container">
+                    <div class="image">
+                        <img src="./images/melons_aligned.jpg" alt="">
+                        <div class="caption">Melons</div>
+                        <div class="caption">Red shift: (178, 13)</div>
+                        <div class="caption">Green shift: (81, 10)</div>
+                    </div>
+                    <div class="image">
+                        <img src="./images/self_portrait_aligned.jpg" alt="">
+                        <div class="caption">Self Portrait</div>
+                        <div class="caption">Red shift: (176, 37)</div>
+                        <div class="caption">Green shift: (78, 29)</div>
+                    </div>
+                </div>
+                <div class="image-container">
+                    <div class="image">
+                        <img src="./images/siren_aligned.jpg" alt="">
+                        <div class="caption">Siren</div>
+                        <div class="caption">Red shift: (49, -6)</div>
+                        <div class="caption">Green shift: (95, -25)</div>
+                    </div>
+                    <div class="image">
+                        <img src="./images/three_generations_aligned.jpg" alt="">
+                        <div class="caption">Three Generations</div>
+                        <div class="caption">Red shift: (112, 11)</div>
+                        <div class="caption">Green shift: (53, 13))</div>
+                    </div>
+                </div>
+                <div class="image-container">
+                    <div class="image">
+                        <img src="./images/church_aligned.jpg" alt="">
+                        <div class="caption">Church</div>
+                        <div class="caption">Red shift: (58, -4))</div>
+                        <div class="caption">Green shift: (25, 4)</div>
+                    </div>
+                    <div class="image">
+                        <img src="./images/emir_unaligned.jpg" alt="">
+                        <div class="caption">Emir (improvements later)</div>
+                        <div class="caption">Red shift: (39, -876)</div>
+                        <div class="caption">Green shift: (49, 24)</div>
                     </div>
                 </div>
 
             </div>
 
+            </div>
+            <br>
+
+        <h2>Running the Pyramid Algorithm on My Selected Examples</h2>
+        <div class="card">
+            <div class="card-text">
+                I chose a few of my own examples from the Prokudin-Gorskii collection and ran the pyramid algorithm. 
+                I think they look quite nice.
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/forest_aligned.jpg" alt="">
+                    <div class="caption">Red shift: (116, -50)</div>
+                    <div class="caption">Green shift: (47, -16)</div>
+                </div>
+                <div class="image">
+                    <img src="./images/pamiatnik_aligned.jpg" alt="">
+                    <div class="caption">Red shift: (85, 50)</div>
+                    <div class="caption">Green shift: (14, 27)</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/vodopad_aligned.jpg" alt="">
+                    <div class="caption">Red shift: (79, -1)</div>
+                    <div class="caption">Green shift: (13, -1)</div>
+                </div>
+            </div>
+
+            
 
         </div>
+        <br>
+
+        
 
         <h2>Final Approach: Edge Detection</h2>
         <div class="card">
@@ -186,7 +289,8 @@
                 </div>
             </div>
             <div class="card-text">
-                These edges look good! Here's the final image, as well as the dimensions I shifted by (height, width):
+                These edges look good! The pyramid method ran a lot quicker too. 
+                Here's the final image, as well as the dimensions I shifted by (height, width):
             </div>
             <div class="image-container">
                 <div class="image">
@@ -198,6 +302,8 @@
         </div>
 
         <br>
+
+        <p class="credit">Background image by <a href="https://chillcrafting.tumblr.com/post/653022946838872064/autumn-forest-with-a-pond-requested-by" target="_blank">chillcrafting</a> on tumblr</p>
 
     </div>
     

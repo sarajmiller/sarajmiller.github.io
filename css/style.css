@@ -1,5 +1,5 @@
 body {
-    background-color: #B4D6C1;
+    background-color: rgba(181,103,39);
     color: 	white;
 }
 
@@ -10,7 +10,7 @@ body {
     z-index: -1;
     top: 0;
     left: 0;
-    background-image: url(../projects/project-1/images/minecraft_autumn.jpg);
+    background-image: url(../images/minecraft_autumn.jpg);
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
@@ -31,15 +31,15 @@ body {
 
 @keyframes fall {
     0% {
-      transform: translateY(-100px) rotate(0deg); /* Start above view, no rotation */
+      transform: translateY(-100px) rotate(0deg);
       opacity: 0;
     }
     10% {
-      opacity: 1; /* Fade in */
+      opacity: 1;
     }
     100% {
-      transform: translateY(100vh) rotate(720deg); /* Fall to bottom, rotate */
-      opacity: 0; /* Fade out */
+      transform: translateY(100vh) rotate(720deg);
+      opacity: 0; 
     }
   }
 
@@ -47,24 +47,14 @@ body {
     width: 100%;
 }
 
-#left {
-    top: 0;
-    left: 0;
-    width: 20%;
-}
-
-#right {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 20%;
-}
-
 h1 {
-    background: rgba(181,103,39, 0.8);
     font-weight: bold;
     margin-left: auto;
     margin-right: auto;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    text-align: center;
+    font-size: 40px;
 }
 
 h2 {
@@ -111,7 +101,7 @@ header {
 
 .card-list a {
     text-decoration: none;
-    color: #6a5acd;
+    color: white;
 }
 
 .card-list a:hover {
@@ -137,6 +127,10 @@ header {
     width: 400px;
 }
 
+.image-third img {
+    width: 250px;
+}
+
 .bold {
     font-weight: bold;
 }
@@ -160,4 +154,18 @@ header {
 
 .dolly {
     width: 250px;
+}
+
+.credit {
+    text-align: center;
+    margin: 0;
+    width: 100%;
+    bottom: 0px;
+    left: 0px;
+    margin-bottom: 5px;
+}
+
+.credit a {
+    color: white;
+    text-decoration: underline
 }
