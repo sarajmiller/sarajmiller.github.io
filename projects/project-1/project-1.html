@@ -25,7 +25,7 @@
         <div class="card">
                 <div class="card-text">
                     This project was inspired by the Russian photographer
-                    Sergei Mikhailovich Prokudin-Gorsky 1863-1944). Beginning in 1907, he
+                    Sergei Mikhailovich Prokudin-Gorsky (1863-1944). Beginning in 1907, he
                     traveled across the Russian Empire to take color photographs of everything he saw using 
                     red, green, and blue filters. He took the same photo 3 times, each time with a different filter.
                 </div>
@@ -73,14 +73,14 @@
         <h2>Better Approach</h2>
         <div class="card">
             To align the R, G, and B panels, I fixed one of the panels (the blue one) and shifted the other
-            panels around to align them on top of it. When shifting the panels, I used one of two methods over a 
+            panels around to align them on top of it. When shifting the panels, I used one of two metrics over a 
             30 x 30 pixel window 
-            to determine how "similar" two panels are on top of each other after shifting:
+            to measure how "similar" two panels are on top of each other after shifting:
             <ul class="card-list">
-                <li class="card-list-item">Euclidean distance</li>
-                <li class=""card-list-item>Normalized Cross Correlation - NCC</li>
+                <li class="card-list-item">Euclidean distance (L2 Norm)</li>
+                <li class=""card-list-item>Normalized Cross Correlation (NCC)</li>
             </ul>
-            Here are examples of how each formula performed for small images:
+            Here are examples of how each metric performed for small images:
             <br>
             <div class="image-container">
                 <div class="image">
@@ -112,7 +112,27 @@
 
             <div class="card-text">
                 We could increase the size of the window, but that would become expensive. Instead,
-                we can use the image pyramid method. This worked great on most of the large images!
+                we can use the image pyramid method:
+            </div>
+            <ul class="card-list">
+                <li class="card-list-item">
+                    Downsample the image by 1/2, up to a desired amount of times (I chose 5)
+                </li>
+                <li class="card-list-item">
+                    For the smallest sample, run an exhaustive search over your [-15, 15] window
+                </li>
+                <li class="card-list-item">
+                    Move up a level and double the shift to account for the change in size
+                </li>
+                <li class="card-list-item">
+                    Run the exhaustive search again over the same size window
+                </li>
+                <li class="card-list-item">
+                    Once you've reached the highest level, apply the shift to the corresponding color panel and re-align
+                </li>
+            </ul>
+            <div class="card-text">
+                This worked great on most of the large images!
             </div>
 
             <div class="image-container">
