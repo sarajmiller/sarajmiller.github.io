@@ -6,8 +6,8 @@ function createLeaf() {
     leaf.classList.add('leaf');
 
     const imgElement = document.createElement('img');
-    imgElement.src = './images/leaf_litter.png';
-    imgElement.alt = 'leaf';
+    // imgElement.src = './images/leaf_litter.png';
+    // imgElement.alt = 'leaf';
 
     leaf.appendChild(imgElement)
   

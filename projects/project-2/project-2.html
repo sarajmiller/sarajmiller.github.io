@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="../../css/fonts.css">
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="preload" href="/fonts/Monocraft.woff2" as="font" type="./fonts/woff2" crossorigin="anonymous">
+    <title>CS 180 Project 2</title>
+    <script src="../../leaves.js" defer></script>
+</head>
+<body>
+    <div id="background"></div>
+    <div class="leaf-container">
+        
+    </div>
+    <div class="page-content">
+        <header>
+            Sara J. Miller ~ CS 180
+        </header>
+        <br>
+
+        <h1>Project 2: Fun with Filters and Frequencies!</h1>
+        <br>
+
+        <h2>Part 1: Fun with Filters</h2>
+        
+        <br>
+
+        <h3>Part 1.1: Convolutions from Scratch!</h2>
+        <div class="card">
+            <div class="card-text">
+                To start this project, I created functions to perform 2D convolutions from scratch using NumPy. 
+                One of the functions uses four for-loops to iterate through each pixel in the image and apply the filter,
+                while the other function uses two for-loops and to apply the filter.
+            </div>
+
+            <div class="card-text">
+                Here's the code for the four for-loops implementation:
+            </div>
+
+            <div class="code-container">
+                <pre>
+                    def four_loop_convolution(img, filter):
+                        # move left to right
+                        img_h = img.shape[0]
+                        img_w = img.shape[1]
+                        # channel = img[2]
+
+                        # flip the filter vertically and horizontally
+                        filter = np.flip(filter, axis=0)
+                        filter = np.flip(filter, axis=1)
+
+                        filter_h = filter.shape[0]
+                        filter_w = filter.shape[1]
+
+                        # calculate resulting image dimensions as we did in 189 for convolutions
+                        output_h = img_h - filter_h + 1
+                        output_w = img_w - filter_w + 1
+
+                        # initialize empty output array
+                        output_arr = np.zeros((output_h, output_w))
+
+                        for h in range(output_h):
+                            for w in range(output_w):
+                                # loop over the filter dims
+                                for k_h in range(filter_h):
+                                    for k_w in range(filter_w):
+                                        # convolve
+                                        output_arr[h, w] += filter[k_h, k_w] * img[h + k_h, w + k_w]
+
+                        return output_arr
+                </pre>
+            </div>
+            <br>
+            <div class="card-text">
+                And here's the code for the two for-loops implementation:
+            </div>
+            <div class="code-container">
+                <pre>
+                    def two_loops_convolution(img, filter):
+                        # move left to right
+                        img_h = img.shape[0]
+                        img_w = img.shape[1]
+                        # channel = img[2]
+
+                        # flip the filter vertically and horizontally
+                        filter = np.flip(filter, axis=0)
+                        filter = np.flip(filter, axis=1)
+
+                        filter_h = filter.shape[0]
+                        filter_w = filter.shape[1]
+
+                        output_h = img_h - filter_h + 1
+                        output_w = img_w - filter_w + 1
+
+                        # initialize empty output array
+                        output_arr = np.zeros((output_h, output_w))
+
+                        for h in range(output_h):
+                            for w in range(output_w):
+                                # slice instead of using two more loops
+                                region = img[h:h+filter_h, w:w+filter_w]
+                                # multiply and compute sum
+                                output_arr[h, w] = np.sum(region * filter)
+
+                        return output_arr
+                </pre>
+            </div>
+            
+            <div class="card-text">
+                I tested both implementations as well as scipy.signal.convolve2d on a grayscale sample image of myself and compared the results:
+                <ul class="card-list">
+                    <li class="card-list-item">
+                        Both of my implementations produced the same output as the scipy output. They also handled boundaries the same way (with zero-padding).
+                    </li>
+                    <li class="card-list-item">
+                        For an image of about 2200 x 1250, the four-loops implementation took over a minute to run. The two-loops implementation took about 6 seconds to run. The scipy implementation took less than a second to run.
+                    </li>
+                </ul>
+                Here is a comparison of my images:
+                <div class="image-container">
+                    <div class="image">
+                        <img src="./images/myself.png" alt="">
+                        <div class="caption">Original Image</div>
+                    </div>
+                    <div class="image">
+                        <img src="./images/two_loop.png" alt="">
+                        <div class="caption">Two Loops Convolution</div>
+                    </div>
+                </div>
+                <div class="image-container">
+                    <div class="image">
+                        <img src="./images/four_loop.png" alt="">
+                        <div class="caption">Four Loops Convolution Image</div>
+                    </div>
+                    <div class="image">
+                        <img src="./images/scipy_convolved.png" alt="">
+                        <div class="caption">Scipy Convolution</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <br>
+        <h3>Part 1.2: Finite Difference Operator</h3>
+        <div class="card">
+            <div class="card-text">
+                Next, I applied the finite difference operators D_x = [-1, 0, 1] and D_y = [-1, 0, 1]^T to this cameraman image to compute the partial derivatives in the x and y directions:
+
+                <br>
+                <div class="image-container">
+                    <div class="image">
+                        <img src="./images/cameraman.png" alt="">
+                        <div class="caption">Original Cameraman Image</div>
+                    </div>
+                </div>
+
+                <br>
+                <div class="image-container">
+                    <div class="image">
+                        <img src="./images/cameraman_edges_x.png" alt="">
+                        <div class="caption">Partial Derivative in x</div>
+                    </div>
+                    <div class="image">
+                        <img src="./images/cameraman_edges_y.png" alt="">
+                        <div class="caption">Partial Derivative in y</div>
+                    </div>
+                </div>
+            </div>
+            <br>
+            I also computed the gradient magnitude image. To turn this into an edge image, I binarized the gradient magnitude image using a threshold value of 0.2. I chose this value by experimentation to see what looks best. The resulting images are shown below:
+
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/cameraman_gradient_magnitude.png" alt="">
+                    <div class="caption">Gradient Magnitude Image</div>
+                </div>
+                <div class="image">
+                    <img src="./images/cameraman_edges.png" alt="">
+                    <div class="caption">
+                        Binarized Image (Threshold=0.2)
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+
+        <br>
+        <h3>Part 1.3: Derivative of Gaussian (DoG) Filter</h3>
+        <div class="card">
+            <div class="card-text">
+                The results of this binarized image are a bit noisy. I reduced the noise by first smoothing the image with a Gaussian filter before applying the finite difference operators. I created a 9x9 Gaussian filter with a standard deviation of 2.0 and convolved it with the cameraman image to produce a smoothed image. 
+            </div>
+            <div class="card-text">
+                Then, I applied the finite difference operators D_x and D_y to the smoothed image to compute the partial derivatives in the x and y directions. Finally, I computed the gradient magnitude image and binarized it using a threshold value of 0.2. The resulting images are shown below:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/cameraman_edges_x_blurred.png" alt="">
+                    <div class="caption">Partial derivative in x of blurred image</div>
+                </div>
+                <div class="image">
+                    <img src="./images/cameraman_edges_y_blurred.png" alt="">
+                    <div class="caption">Partial derivative in y of blurred image</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/cameraman_gradient_blurred.png" alt="">
+                    <div class="caption">Gradient magnitude of blurred image</div>
+                </div>
+                <div class="image">
+                    <img src="./images/cameraman_edges_blurred.png" alt="">
+                    <div class="caption">Binarized version of blurred image (Threshold=0.3)</div>
+                </div>
+            </div>
+            <br>
+            <div class="card-text">
+                I chose the threshold based on experimentation. The results are much less noisy!
+            </div>
+        </div>
+        <br>
+
+        <h2>Part 2: Fun with Frequencies!</h2>
+        <br>
+        <h3>Part 2.1: Image "Sharpening"</h3>
+        <div class="card">
+            <div class="card-text">
+                Images look sharper when they have higher frequencies. For this subpart, I created an unsharp mask filter in a single convolution to increase the high frequency content of an image.
+            </div>
+            <div class="card-text">
+                To create this filter, I first created a Gaussian filter with a size of 9x9 and a standard deviation of 2. Then, I subtracted this Gaussian filter from a unit impulse of the same size to create the unsharp mask filter! I used an alpha parameter to control the amount of sharpening done by the filter.
+            </div>
+            <div class="card-text">
+                By applying this filter to images, I was able to sharpen them! Below are some examples of images before and after applying the unsharp mask filter with alpha=1.5:
+            </div>
+
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/taj_original.png" alt="">
+                    <div class="caption">Original Taj Image</div>
+                </div>
+                <div class="image">
+                    <img src="./images/taj_sharpened.png" alt="">
+                    <div class="caption">Sharpened Taj (alpha = 1.0)</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/taj_sharpened_1.5.png" alt="">
+                    <div class="caption">Sharpened Taj (alpha = 1.5)</div>
+                </div>
+                <div class="image">
+                    <img src="./images/taj_sharpened_2.0.png" alt="">
+                    <div class="caption">Sharpened Taj (alpha = 2.0)</div>
+                </div>
+            </div>
+            <br>
+            <div class="card-text">
+                I also tried blurring the image, then sharpening it again. A little bit of the original detail was lost, but it still looks pretty good:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/taj_blurred.png" alt="">
+                    <div class="caption">Blurred Taj</div>
+                </div>
+                <div class="image">
+                    <img src="./images/taj_blur_sharpen.png" alt="">
+                    <div class="caption">Blurred then Sharpened Taj</div>
+                </div>
+            </div>
+            <div class="card-text">
+                I also tried sharpening an image of my choice:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/chains.png" alt="">
+                    <div class="caption">Me after midterms</div>
+                </div>
+                <div class="image">
+                    <img src="./images/chains_sharpened.png" alt="">
+                    <div class="caption">Me after midterms, sharpened (a=3)</div>
+                </div>
+            </div>
+        </div>
+
+        <br>
+        <h3>Part 2.2: Hybrid Images</h3>
+        <div class="card">
+            <div class="card-text">
+                We can create hybrid images using the approach described in the SIGGRAPH 
+                2006 <a href="https://web.archive.org/web/20070315210101/http://cvcl.mit.edu/hybrid/OlivaTorralb_Hybrid_Siggraph06.pdf">paper</a> 
+                by Oliva, Torralba, and Schyns. The idea is to combine the low frequency 
+                content of one image with the high frequency content of another image to 
+                create a hybrid image that changes depending on the viewing distance.
+            </div>
+            <div class="card-text">
+                As an example, I first aligned the two images by aligning their eyes on top of each other. 
+                Then, I ran a low-pass filter (a gaussian with ksize=50, sigma=18) on Derek, a human, and a high-pass filter (impulse minus gaussian with ksize=101, sigma=30) on Nutmeg, a cat. 
+                I combined the low-frequency image of Derek with the high-frequency image of Nutmeg to create a hybrid image.
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/nutmeg.jpg" alt="">
+                    <div class="caption">Original Nutmeg Image</div>
+                </div>
+                <div class="image">
+                    <img src="./images/Derek.jpg" alt="">
+                    <div class="caption">Original Derek Image</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/aligned_nutmeg.jpg" alt="">
+                    <div class="caption">Aligned Nutmeg Image</div>
+                </div>
+                <div class="image">
+                    <img src="./images/aligned_derek.jpg" alt="">
+                    <div class="caption">Aligned Derek Image</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/high_frequencies.png" alt="">
+                    <div class="caption">Filtered Nutmeg Image</div>
+                </div>
+                <div class="image">
+                    <img src="./images/derek_filtered.jpg" alt="">
+                    <div class="caption">Filtered Derek Image</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/hybrid_image_1.png" alt="">
+                    <div class="caption">Hybrid Image of Nutmeg and Derek!</div>
+                </div>
+            </div>
+            <br>
+            <div class="card-text">
+                The resulting hybrid image looks like Nutmeg when viewed up close, 
+                but from a distance it looks like Derek!
+            </div>
+            <div class="card-text">
+                I'll also illustrate the process through frequency analysis. Here are the 
+                Fourier transforms of the original images, the filtered images, and finally the hybrid image:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/nutmeg_fourier.png" alt="">
+                    <div class="caption">Fourier Transform of Nutmeg</div>
+                </div>
+                <div class="image">
+                    <img src="./images/derek_fourier.png" alt="">
+                    <div class="caption">Fourier Transform of Derek</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/nutmeg_high_fourier.png" alt="">
+                    <div class="caption">Fourier Transform of Filtered Nutmeg</div>
+                </div>
+                <div class="image">
+                    <img src="./images/derek_low_fourier.png" alt="">
+                    <div class="caption">Fourier Transform of Filtered Derek</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/hybrid_fourier_1.png" alt="">
+                    <div class="caption">Fourier Transform of Hybrid Image</div>
+                </div>
+            </div>
+            <br>
+            <div class="card-text">
+                Cool! I tried this with a couple other pairs of images as well, here are the results!
+            </div>
+
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/edward.png" alt="">
+                    <div class="caption">Original Edward Image</div>
+                </div>
+                <div class="image">
+                    <img src="./images/jacob.png" alt="">
+                    <div class="caption">Original Jacob Image</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/hybrid_image_2.png" alt="">
+                    <div class="caption">Hybrid Image of Edward & Jacob</div>
+                </div>
+            </div>
+            <br>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/roger.png" alt="">
+                    <div class="caption">Original Roger Image</div>
+                </div>
+                <div class="image">
+                    <img src="./images/rafa.png" alt="">
+                    <div class="caption">Original Rafa Image</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/hybrid_image_3.png" alt="">
+                    <div class="caption">Hybrid Roger & Rafa</div>
+                </div>
+            </div>
+        </div>
+
+        <br>
+        <h3>2.3: Gaussian and Laplacian Stacks</h3>
+        <div class="card">
+            <div class="card-text">
+                I created Gaussian and Laplacian stacks of images of an orange and an apple. 
+                <ul class="card-list">
+                    <li>A Gaussian stack is created by repeatedly applying a Gaussian filter to an image to create a series of increasingly blurred images. </li>
+                    <li>A Laplacian stack is created by taking the difference between consecutive images in the Gaussian stack.</li>
+                </ul>
+    
+            </div>
+            <div class="card-text">
+                Below are the first five levels of the Gaussian and Laplacian stacks for this image of an orange and an apple:
+            </div>
+            <div class="image-container">
+                    <div class="image-third">
+                        <img src="./images/apple_stack_0.png" alt="">
+                        <div class="caption">Apple Level 0</div>
+                    </div>
+                    <div class="image-third">
+                        <img src="./images/orange_stack_0.png" alt="">
+                        <div class="caption">Orange Level 0</div>
+                    </div>
+                    <div class="image-third">
+                        <img src="./images/oraple_0.png" alt="">
+                        <div class="caption">Oraple Level 0</div>
+                    </div>
+                </div> 
+            <div class="image-container">
+                    <div class="image-third">
+                        <img src="./images/apple_stack_2.png" alt="">
+                        <div class="caption">Apple Level 2</div>
+                    </div>
+                    <div class="image-third">
+                        <img src="./images/orange_stack_2.png" alt="">
+                        <div class="caption">Orange Level 2</div>
+                    </div>
+                    <div class="image-third">
+                        <img src="./images/oraple_2.png" alt="">
+                        <div class="caption">Oraple Level 2</div>
+                    </div>
+                </div> 
+            
+            <div class="image-container">
+                    <div class="image-third">
+                        <img src="./images/apple_stack_4.png" alt="">
+                        <div class="caption">Apple Level 4</div>
+                    </div>
+                    <div class="image-third">
+                        <img src="./images/orange_stack_4.png" alt="">
+                        <div class="caption">Orange Level 4</div>
+                    </div>
+                    <div class="image-third">
+                        <img src="./images/oraple_4.png" alt="">
+                        <div class="caption">Oraple Level 4</div>
+                    </div>
+                </div>
+                <div class="image-container">
+                    <div class="image-third">
+                        <img src="./images/apple_collapsed.png" alt="">
+                        <div class="caption">Original Masked Apple</div>
+                    </div>
+                    <div class="image-third">
+                        <img src="./images/orange_collapsed.png" alt="">
+                        <div class="caption">Original Masked Orange</div>
+                    </div>
+                    <div class="image-third">
+                        <img src="./images/oraple_collapsed.png" alt="">
+                        <div class="caption">Oraple!</div>
+                    </div>
+                </div>
+                <div class="card-text">
+                    I recreated the outcomes of the figure in <a href="https://www.dropbox.com/s/bzt69u4azxyfpjo/SzeliskiBookDraft_20210828.pdf?dl=0">Szelski (Ed 2)</a> page 167. 
+                    The first three rows show the high, medium, and low frequency Laplacian images, taken from different levels. The left and middle columns show the apple and orange images with a gradient mask on top, and the right column is the result from adding them together.
+                </div>
+            </div>
+
+            <br>
+            <h3>Part 2.4: Multiresolution Blending</h3>
+            <div class="card">
+                <div class="card-text">
+                    Here are some more of my results using a mask to blend two images together using multiresolution blending!
+                </div>
+                <div class="image-container">
+                    <div class="image">
+                        <img src="./images/yonex_ezone.png" alt="">
+                        Yonex Ezone 98
+                    </div>
+                    <div class="image">
+                        <img src="./images/wilson_blade.png" alt="">
+                        Wilson Blade 98
+                    </div>
+                </div>
+                <div class="image-container">
+                    <div class="image">
+                        <img src="./images/yonex_wilson.png" alt="">
+                        <div class="caption">Hybrid Racket 98</div>
+                    </div>
+                </div>
+                <br>
+                <div class="card-text">
+                Maybe I'll finally become a good player with my dream racket! The racket sizes are *slightly* different, hence the differences in smoothing.
+            </div>
+            <div class="card-text">
+                I also created an irregular mask using Canva, and did the same thing! I added the mask on top of both images, computed their Laplacian stacks, and added them together. God, I wish I was him right now.
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/cinamo.png" alt="">
+                    <div class="caption">Cinnamoroll!</div>
+                </div>
+                <div class="image">
+                    <img src="./images/beach.png" alt="">
+                    <div class="caption">Nice Beach Vacation</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/cinamo_mask.png" alt="">
+                    <div class="caption">Cinnamoroll Masked</div>
+                </div>
+                <div class="image">
+                    <img src="./images/beach_mask.png" alt="">
+                    <div class="caption">Beach Masked</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/combined.png" alt="">
+                    <div class="caption">Cinnamoroll on Vacation!</div>
+                </div>
+            </div>
+            </div>
+            <br>
+
+            
+        </div>
+        
+    
+</body>
+</html>
