@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="../../css/fonts.css">
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="preload" href="/fonts/Monocraft.woff2" as="font" type="./fonts/woff2" crossorigin="anonymous">
+    <title>CS 180 Project 3</title>
+    <script src="../../leaves.js" defer></script>
+</head>
+<body>
+    <div id="background"></div>
+    <div class="leaf-container">
+        
+    </div>
+    <div class="page-content">
+        <header>
+            Sara J. Miller ~ CS 180
+        </header>
+        <br>
+
+        <h1>Project 4: Neural Radiance Field (NeRF)</h1>
+        <br>
+
+        <div class="card">
+            <div class="card-text">
+                In this project, I implemented a basic version of Neural Radiance Fields (NeRF) to generate novel views of 3D scenes from a set of 2D images.
+            </div>
+        </div>
+
+        <br>
+        <h2>Part 0: Calibrating the Camera and 3D Scanning</h2>
+        <div class="card">
+            <div class="card-text">
+                
+                To start, I took over 30 images from varying distances and angles of AruCo markers to calibrate my camera using OpenCV. I used cv2.calibrateCamera() to compute the camera intrinsics, and cv2.solvePnP() to estimate the camera pose for each image. 
+                Here's an example of one of the calibration images, as well as the intrinsics I calculated:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/calibration.png" alt="">
+                    <div class="caption">Camera Calibration Image</div>
+                </div>
+                <div class="image">
+                    <img src="./images/intrinsics.png" alt="">
+                    <div class="caption">Camera Intrinsics</div>
+                </div>
+            </div>
+            <div class="card-text">
+                Once my camera was calibrated, I took 40 images of my penguin Pengy from varying angles and distances. 
+                For each image, I calculated the camera pose using the AruCo markers as reference points.
+                I was able to visualize the pose estimations by displaying a camera frustum in 3D with viser:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/penguin-frustums-1.png" alt="">
+                </div>
+                <div class="image">
+                    <img src="./images/penguin-frustums-2.png" alt="">
+                </div>
+            </div>
+        </div>
+        <br>
+
+        <h2>Part 1: Fitting a Neural Field to a 2D image</h2>
+        <div class="card">
+            <div class="card-text">
+                To begin, I created a simple Multilayer Perceptron (MLP) network with Sinusoidal Positional Encoding (PE) 
+                that takes 2-dimensional coordinates as input and outputs RGB color values. Here's the structure of the 2D model 
+                I implemented using PyTorch:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/mlp_img.jpg" alt="">
+                    <div class="caption">Basic MLP Structure</div>
+                </div>
+            </div>
+            <div class="card-text">
+                The model architecture has 4 layers, with 256 hidden units per layer. I found that for the PE, L=10 levels was a good amount. 
+                I used a learning rate of 1e-2 and trained the model for 1600 iterations using the Adam optimizer.
+            </div>
+            <div class="card-text">
+                Here's how the model performed at different iterations for an example image of a fox:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/fox_0.png" alt="">
+                    <div class="caption">0 Iterations</div>
+                </div>
+                <div class="image">
+                    <img src="./images/fox_400.png" alt="">
+                    <div class="caption">400 Iterations</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/fox_800.png" alt="">
+                    <div class="caption">800 Iterations</div>
+                </div>
+                <div class="image">
+                    <img src="./images/fox_1400.png" alt="">
+                    <div class="caption">1400 Iterations</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/fox_original.png" alt="">
+                    <div class="caption">Original Fox Image</div>
+                </div>
+            </div>
+            <div class="card-text">
+                I also tweaked with the hyperparameters for max positional encoding levels and width of the hidden layers. Here's some results from those experiments:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/PE2_L64.png" alt="">
+                    <div class="caption">PE = 2, Layer Width = 64</div>
+                </div>
+                <div class="image">
+                    <img src="./images/PE2_L128.png" alt="">
+                    <div class="caption">PE = 2, Layer Width = 128</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/PE10_L64.png" alt="">
+                    <div class="caption">PE = 10, Layer Width = 64</div>
+                </div>
+                <div class="image">
+                    <img src="./images/PE10_L128.png" alt="">
+                    <div class="caption">PE = 10, Layer Width = 128</div>
+                </div>
+            </div>
+            <div class="card-text">
+                A PE level of 10 and a higher layer width seemed to give the best results overall. I used 256 hidden units for my MLP.
+            </div>
+            <div class="card-text">
+                Here's the training progression for one of my own images of Yosemite's Nevada Falls:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/checkpoint_0.png" alt="">
+                    <div class="caption">0 Iterations</div>
+                </div>
+                <div class="image">
+                    <img src="./images/checkpoint_400.png" alt="">
+                    <div class="caption">400 Iterations</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/checkpoint_800.png" alt="">
+                    <div class="caption">800 Iterations</div>
+                </div>
+                <div class="image">
+                    <img src="./images/checkpoint_1400.png" alt="">
+                    <div class="caption">1400 Iterations</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/yosemite.png" alt="">
+                    <div class="caption">Original Yosemite Image</div>
+                </div>
+            </div>
+            <div class="card-text">
+                And here's the PSNR curve over the 1600 training iterations for the Yosemite images:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/yosemite_psnrs.png" alt="" style="width: 600px;">
+                    <div class="caption">Yosemite Training PSNR Curve</div>
+                </div>
+            </div>
+        </div>
+
+        <br>
+        <h2>Part 2: Fit a Neural Radiance Field from Multi-view Images</h2>
+        <div class="card">
+            <div class="card-text">
+                Finally, I was able to put everything together to create a NeRF representing a 3D image. I'll go through how I did it step-by-step, 
+                as well as showing an example using the Lego dataset from the original <a href="https://www.matthewtancik.com/nerf">NeRF paper</a>.
+            </div>
+        </div>
+        <br>
+        <h2>Part 2.1: Creating Rays from Cameras</h2>
+        <div class="card">
+            <div class="card-text">
+                To start, I implemented some methods to create rays from the camera intrinsics and extrinsics.
+            </div>
+            <div class="card-text">
+                The first one was Camera to World Coordinate conversion, which converts camera coords to world coords using the inverse of the camera extrinsics matrix.
+            </div>
+            <div class="card-text">
+                Next, I implemented Pixel to Camera coordinate conversion using the intrinsics matrix K. This converts pixel coordinates (u, v) to camera coordinates (x, y, z).
+            </div>
+
+            <div class="card-text">
+                Finally, I implemented Pixel to Ray conversion, which combines the previous two methods to generate rays in world coordinates for each pixel in the image. 
+                To calculate the ray direction for pixel, we can simply choose a point along this ray with 
+                depth equal to 1 (s=1) and find its coordinate in world space. Then the normalized ray direction can be computed by:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="ray_direction.png" alt="">
+                </div>
+            </div>
+            <div class="card-text">
+                Where the camera origin r_o is simply the translation component of the camera extrinsics matrix.
+            </div>
+        </div>
+
+        <br>
+        <h2>Part 2.2: Sampling</h2>
+        <div class="card">
+            <div class="card-text">
+                I implemented sampling rays from images by randomly selecting pixels from the images and converting them to rays. Since pixels are measured at the corners, not in the middle, 
+                I added 0.5 to the pixel coordinates when sampling.
+                This method is helpful for training the NeRF model using mini-batches of rays.
+            </div>
+            <div class="card-text">
+                Additionally, I implemented sampling points along rays, which samples 3D points along a ray at regular intervals between a near and far distance (typically 2.0 and 6.0). 
+                Optionally, I added small random perturbations to the sample positions to improve training.
+            </div>
+        </div>
+
+        <br>
+        <h2>Part 2.3: Putting the Dataloading All Together</h2>
+        <div class="card">
+            <div class="card-text">
+                I wrote a dataloader that randomly samples pixels from images and converts them to rays, then samples points along those rays. 
+                Here are a couple of visualizations showing sampled rays for cameras in the Lego dataset:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/viser_all_rays.png" alt="">
+                    <div class="caption">All cameras with samples</div>
+                </div>
+                <div class="image">
+                    <img src="./images/viser_single_sample.png" alt="">
+                    <div class="caption">Single camera with 100 samples</div>
+                </div>
+            </div>
+        </div>
+
+        <br>
+        <h2>Part 2.4: Creating the NeRF Model</h2>
+        <div class="card">
+            <div class="card-text">
+                Now that we are able to sample 3D points along rays, we want to use the network to predict color and density values for those points. 
+                I created an MLP similar to part 1, but with some changes:
+            </div>
+            <div class="image-container">
+                <div class="image" style="width: 400px;">
+                    <img src="./images/mlp_nerf.png" alt="" style="width: 400px;">
+                    <div class="caption">NeRF MLP Structure</div>
+                </div>
+            </div>
+            <div class="card-text">
+                The model starts with 8 layers with 256 hidden units per layer. The input is 3D coordinates with L=10 levels of positional encoding. 
+                The output is a density value and RGB color for each point. After the first 8 layers, the network branches into two heads: one for density and one for color.
+                The color head takes in the viewing direction (also with positional encoding, L=4)
+            </div>
+        </div>
+
+        <br>
+        <h2>Part 2.5: Volume Rendering</h2>
+        <div class="card">
+            <div class="card-text">
+                With the NeRF model implemented, I can now predict color and density values for sampled points along rays. 
+                To render an image, I need to perform volume rendering by integrating these values along each ray. The volume rendering equation is as follows:
+            </div>
+            <div class="image">
+                <div class="image-container">
+                    <img src="./images/volrend_eq.png" alt="" style="width: 600px">
+
+                </div>
+            </div>
+            <div class="card-text">
+                The discrete approximation that I computed using code is:
+            </div>
+            <div class="image">
+                <div class="image-container">
+                    <img src="./images/volrend_disc.png" alt="" style="width: 600px">
+                </div>
+            </div>
+            <div class="card-text">
+                For each ray, I compute the color contribution from each sampled point using the predicted color and density values. 
+                The final pixel color is obtained by accumulating these contributions along the ray, taking into account the transmittance (how much light reaches each point without being occluded).
+            </div>
+            <br>
+            <div class="card-text">
+                Using this, I was able to optimize my model to fit on the lego dataset. Here are some rendered images at different training iterations: 
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/lego_0.png" alt="">
+                    <div class="caption">0 Iterations</div>
+                </div>
+                <div class="image">
+                    <img src="./images/lego_200.png" alt="">
+                    <div class="caption">200 Iterations</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/lego_400.png" alt="">
+                    <div class="caption">400 Iterations</div>
+                </div>
+                <div class="image">
+                    <img src="./images/lego_800.png" alt="">
+                    <div class="caption">800 Iterations</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/lego_1200.png" alt="">
+                    <div class="caption">1200 Iterations</div>
+                </div>
+                <div class="image">
+                    <img src="./images/lego_1600.png" alt="">
+                    <div class="caption">1600 Iterations</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/original_lego.png" alt="">
+                    <div class="caption">Original Image</div>
+                </div>
+            </div>
+            <div class="card-text">
+                Here's the PSNR curve on the validation set over 2000 training iterations:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/lego_val_psnr.png" alt="" style="width: 600px;">
+                    <div class="caption">Lego Validation PSNR</div>
+                </div>
+            </div>
+            <br>
+            <div class="card-text">
+                So cool! We can finally put everything together to render novel views of our own 3D scene. After training for 2000 iterations on the lego dataset, here are my results using the test c2ws:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/lego_gif.gif" alt="">
+                </div>
+            </div>
+            </div>
+        
+            <br>
+            <h2>Part 2.6: Training with more data</h2>
+            <div class="card">
+            <div class="card-text">
+                I started by training my NeRF model on the Lafufu dataset. Here are some of the intermediate renders of the scene while training: 
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/lafufu_400.png" alt="">
+                    <div class="caption">400 Iterations</div>
+                </div>
+                <div class="image">
+                    <img src="./images/lafufu_2000.png" alt="">
+                    <div class="caption">2000 Iterations</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/lafufu_5000.png" alt="">
+                    <div class="caption">5000 Iterations</div>
+                </div>
+                <div class="image">
+                    <img src="./images/lafufu_8500.png" alt="">
+                    <div class="caption">8500 Iterations</div>
+                </div>
+            </div>
+            <div class="card-text">
+                I trained for 10000 iterations with the following parameters:
+                <ul class="card-list">
+                    <li class="card-item">Learning rate: 5e-4</li>
+                    <li class="card-item">Sample Batch Size: 10000 rays</li>
+                    <li class="card-item">Samples per ray: 64</li>
+                    <li class="card-item">Near/Far bounds: 0.02 and 0.5</li>
+                </ul>
+            </div>
+            <div class="card-text">This worked out pretty well! Here's a gif of the novel view for the Lafufu dataset, as well as the training PSNR curve:</div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/lafufu_novel_view.gif" alt="">
+                    <div class="caption">Lafufu Novel View</div>
+                </div>
+                <div class="image">
+                    <img src="./images/lafufu_psnr.png" alt="">
+                    <div class="caption">Training PSNR Curve</div>
+                </div>
+            </div>
+
+            <div class="card-text">
+                Finally, I trained my NeRF model on my own dataset of Pengy the penguin using the same methods as above. 
+                Here are the parameters I used:
+                <ul class="card-list">
+                    <li class="card-item">Learning rate: 5e-4</li>
+                    <li class="card-item">Sample Batch Size: 10000 rays</li>
+                    <li class="card-item">Samples per ray: 64</li>
+                    <li class="card-item">Near/Far bounds: 0.02 and 0.6</li>
+                </ul>
+            </div>
+            <div class="card-text">
+                After training for 10000 iterations, here are some intermediate renders of Pengy during training, as well as a gif of the novel view:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/pengy_500.png" alt="">
+                    <div class="caption">500 Iterations</div>
+                </div>
+                <div class="image">
+                    <img src="./images/pengy_2500.png" alt="">
+                    <div class="caption">2500 Iterations</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/pengy_5000.png" alt="">
+                    <div class="caption">5000 Iterations</div>
+                </div>
+                <div class="image">
+                    <img src="./images/pengy_9000.png" alt="">
+                    <div class="caption">9000 Iterations</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/pengy_gif.gif" alt="">
+                    <div class="caption">Pengy Novel View</div>
+                </div>
+            </div>
+            <div class="card-text">
+                It looks like we could have tweaked parameters a bit more to get a better result, but overall I'm happy with how it turned out with the time that I had! Here's the final training PNSR curve for the Pengy dataset:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/pengy_psnr.png" alt="" style="width: 600px;">
+                    <div class="caption">Pengy Training PSNR Curve</div>
+                </div>
+            </div>
+        </div>
+        </div>      
+    </div>
+        
+    
+</body>
+</html>
