@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="../../css/fonts.css">
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="preload" href="/fonts/Monocraft.woff2" as="font" type="./fonts/woff2" crossorigin="anonymous">
+    <title>CS 180 Project 3</title>
+    <script src="../../leaves.js" defer></script>
+</head>
+<body>
+    <div id="background"></div>
+    <div class="leaf-container"></div>
+    <div class="page-content">
+        <header>
+            Sara J. Miller ~ CS 180
+        </header>
+        <br>
+
+        <h1>Project 5: Fun with Diffusion Models!</h1>
+
+        <br>
+        <h2>Part A: The Power of Diffusion Models!</h2>
+
+        <div class="card">
+            <div class="card-text">
+                This part explores the capabilities of diffusion models for image generation and image editing.
+            </div>
+        </div>
+
+        <br>
+        <h1>Part 0: Exploring Prompt Embeddings</h1>
+
+        <div class="card">
+            <div class="card-text">
+                
+                In this part, I experimented with generating images using different text prompts to see how the diffusion model interprets various descriptions.
+                Here are some of the prompts I gave the model:
+                <ul class="card-list">
+                    <li class="card-item">a photo of Roger Federer hitting a forehand on a grass tennis court</li>
+                    <li class="card-item">Berkeley students taking a difficult exam</li>
+                    <li class="card-item">an oil painting of a tennis court</li>
+                </ul>
+            </div>
+            
+            <div class="card-text">
+                I'm using the DeepFloyd text-to-image model image generation. Note that I'm using the random seed 180 for all image generations to ensure reproducibility of results. Here are the generated images for each prompt above, using 2 different num_inference_steps values (20 and 30): 
+            </div>
+
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/stage1_0.png" alt="">
+                    <div class="caption">num_inference_steps = 20</div>
+                </div>
+                <div class="image">
+                    <img src="./images/stage2_0.png" alt="">
+                    <div class="caption">num_inference_steps = 30</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/stage1_1.png" alt="">
+                    <div class="caption">num_inference_steps = 20</div>
+                </div>
+                <div class="image">
+                    <img src="./images/stage2_1.png" alt="">
+                    <div class="caption">num_inference_steps = 30</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/stage1_2.png" alt="">
+                    <div class="caption">num_inference_steps = 20</div>
+                </div>
+                <div class="image">
+                    <img src="./images/stage2_2.png" alt="">
+                    <div class="caption">num_inference_steps = 30</div>
+                </div>
+            </div>
+
+
+
+            <div class="card-text">
+                These images are not perfect, but they do show that the diffusion model is able to capture some aspects of the prompts given. It seems that a higher number of inference steps leads to slightly more detailed images, but the model takes longer to run.
+            </div>
+        </div>
+
+        <br>
+        <h1>Part 1: Sampling Loops</h1>
+
+        <br>
+        <h2>Part 1.1: Implementing the Forward Process</h2>
+
+        <div class="card">
+            <div class="card-text">
+                I implemented the forward(im, t) function that takes an image and a time step t and adds noise to the image according to the diffusion model's cumulative alpha value at time t. 
+                Here are some of the results of adding noise to the Berkeley Campanile image at different time steps:
+            </div>
+            
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/campanile_0.png" alt="">
+                    <div class="caption">Berkeley Campanile</div>
+                </div>
+                <div class="image">
+                    <img src="./images/campanile_250.png" alt="">
+                    <div class="caption">Noisy Campanile (t=250)</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/campanile_500.png" alt="">
+                    <div class="caption">Noisy Campanile (t=500</div>
+                </div>
+                <div class="image">
+                    <img src="./images/campanile_750.png" alt="">
+                    <div class="caption">Noisy Campanile (t=750)</div>
+                </div>
+            </div>
+
+            <div class="card-text">
+                Here's the code I used to implement the forward process:
+
+                <pre><code>def forward(im, t):
+  with torch.no_grad():
+
+    alpha_t = alphas_cumprod[t]
+    epsilon = torch.randn_like(im)
+    im_noisy = torch.sqrt(alpha_t) * im + torch.sqrt(1 - alpha_t) * epsilon
+
+  return im_noisy</code></pre>
+
+            </div>
+        </div>
+
+        <br>
+        <h2>Part 1.2: Classical Denoising</h2>
+
+        <div class="card">
+            <div class="card-text">
+                One classical denoising technique involves removing noise from an image by applying a Gaussian filter. Getting good results using this method is quite difficult. 
+                For each of the 3 noisy images generated in Part 1.1, I applied Gaussian filtering with different sigma values to see how well it could denoise the images.
+                Here are the best results, shown side by side with the original noisy images:
+            </div>
+
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/campanile_250.png" alt="">
+                    <div class="caption">Noisy Campanile (t=250)</div>
+                </div>
+                <div class="image">
+                    <img src="./images/c_250_blurred.png" alt="">
+                    <div class="caption">t=250, k=5.0, sigma=1.0</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/campanile_500.png" alt="">
+                    <div class="caption">Noisy Campanile (t=500)</div>
+                </div>
+                <div class="image">
+                    <img src="./images/c_500_blurred.png" alt="">
+                    <div class="caption">t=500, k=5.0, sigma=1.0</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/campanile_750.png" alt="">
+                    <div class="caption">Noisy Campanile (t=750)</div>
+                </div>
+                <div class="image">
+                    <img src="./images/c_750_blurred.png" alt="">
+                    <div class="caption">t=750, k=5.0, sigma=1.0</div>
+                </div>
+            </div>
+            <div class="card-text">
+                Obviously, these results are not very good. We improve on this in the next section using diffusion models!
+            </div>
+        </div>
+
+        <br>
+        <h2>Part 1.3: One-Step Denoising</h2>
+        
+        <div class="card">
+            <div class="card-text">
+                Now instead, let's use a pre-trained diffusion model to denoise the images in one step. We'll use the DeepFloyd model with the text prompt "a high quality photo". 
+            </div>
+            <div class="card-text">
+                I estimated the noise in the noisy image at time step t using the diffusion model, and then removed the estimated noise from the noisy image to get the estimated original image.
+            </div>
+            <div class="card-text">
+                I ran this model on each of the noisy images from the previous section. Here are the results, as well as their comparisons to the original and noisy images:
+            </div>
+
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/campanile_0.png" alt="">
+                    <div class="caption">Original Image</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/campanile_250.png" alt="">
+                    <div class="caption">Noisy Image (t=250)</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/denoised_250.png" alt="">
+                    <div class="caption">Denoised Image (t=250)</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/campanile_0.png" alt="">
+                    <div class="caption">Original Image</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/campanile_500.png" alt="">
+                    <div class="caption">Noisy Image (t=500)</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/denoised_500.png" alt="">
+                    <div class="caption">Denoised Image (t=500)</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/campanile_0.png" alt="">
+                    <div class="caption">Original Image</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/campanile_750.png" alt="">
+                    <div class="caption">Noisy Image (t=750)</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/denoised_750.png" alt="">
+                    <div class="caption">Denoised Image (t=750)</div>
+                </div> 
+            </div>
+        </div>
+        <br>
+        <h2>Part 1.4: Iterative Denoising</h2>
+
+        <div class="card">
+            <div class="card-text">
+                I constructed strided_timesteps, which is a list of time steps that decrease from 990 to 0 in increments of 30. 
+                Then, I implemented the iterative_denoise function that takes a noisy image and iteratively denoises it using the diffusion model at each time step in strided_timesteps.
+            </div>
+            <div class="card-text">
+                In the iterative_denoise function, we start with the noisy campanile image at a timestep and progressively denoise it using the model's predictions at each timestep. 
+                
+                To actually do this, on the ith denoising step we want to get t' = strided_timesteps[i+1] and t = strided_timesteps[i] (from more noisy to less noisy). We can implement this using the formula: 
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/iterative_formula.png" alt="">
+                </div>
+            </div>
+            <div class="card-text">
+                Where 
+                <ul class="card-list">
+                    <li class="card-list-item">
+                        x_t is your current noisy image at time t
+                    </li>
+                    <li class="card-list-item">
+                        x_t' is the less noisy image at time t'
+                    </li>
+                    <li class="card-list-item">
+                        The alpha values at each time step are predetermined constants from the diffusion model
+                    </li>
+                    <li class="card-list-item">
+                        v_sigma is random noise
+                    </li>
+                </ul>
+                We want x_0, our current estimate of the clean image using one-step denoising.
+            </div>
+            <br>
+            <div class="card-text">
+                Here are the results at every 5th loop in the denoising process:
+            </div>
+
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/iter_690.png" alt="">
+                    <div class="caption">t = 690</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/iter_540.png" alt="">
+                    <div class="caption">t = 540</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/iter_390.png" alt="">
+                    <div class="caption">t = 390</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/iter_240.png" alt="">
+                    <div class="caption">t = 240</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/iter_90.png" alt="">
+                    <div class="caption">t = 90</div>
+                </div>
+            </div>
+            <div class="card-text">
+                The final predicted image is much better compared to the one-step denoising as well as the classical denoising from the previous parts.
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/0th_iter.png" alt="">
+                    <div class="caption">Predicted Image</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/clean_one_step.png" alt="">
+                    <div class="caption">One-Step Denoised</div>
+                </div>
+
+                <div class="image-third">
+                    <img src="./images/c_750_blurred.png" alt="">
+                    <div class="caption">Blurred Noisy Image</div>
+                </div>
+
+            </div>
+        </div>
+
+
+        <br>
+        <h2>Part 1.5: Diffusion Model Sampling</h2>
+
+        <div class="card">
+            <div class="card-text">
+                We can use iterative_denoise to generate images from scratch! Instead of providing the noisy campanile image as input, I just provided pure noise. Here's some of the denoising results using the prompt "a high quality photo":
+            </div>
+
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/diffusion_sample_1.png" alt="">
+                    <div class="caption">Generated Image 1</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/diffusion_sample_2.png" alt="">
+                    <div class="caption">Generated Image 2</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/diffusion_sample_3.png" alt="">
+                    <div class="caption">Generated Image 3</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/diffusion_sample_4.png" alt="">
+                    <div class="caption">Generated Image 4</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/diffusion_sample_5.png" alt="">
+                    <div class="caption">Generated Image 5</div>
+                </div>
+            </div>
+
+            <div class="card-text">
+                The quality of these images is not too great, but at least they're reasonable. We can improve this with CFG in the next section.
+            </div>
+                
+            
+        </div>
+
+        <br>
+        <h2>Part 1.6: Classifier-Free Guidance (CFG)</h2>
+
+        <div class="card">
+            <div class="card-text">
+                Classifier-Free Guidance (CFG) is a technique that greatly improves the quality of images at the expense of diversity. It works by computing both a conditional and unconditinoal noise estimate, and combining them using the following formula:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/cfg_formula.png" alt="">
+                </div>
+            </div>
+            <div class="card-text">
+                I implemented the iterative_denoise_cfg function that builds off of iterative_denoise, but adds the classifier-free guidance (CFG) technique to improve image quality.
+                Here are some of the denoising results using CFG with the prompt "a high quality photo" for the conditional prompt with a CFG scale of 7.0:
+            </div>
+
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/cfg_1.png" alt="">
+                    <div class="caption">CFG Image 1</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/cfg_2.png" alt="">
+                    <div class="caption">CFG Image 2</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/cfg_3.png" alt="">
+                    <div class="caption">CFG Image 3</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/cfg_4.png" alt="">
+                    <div class="caption">CFG Image 4</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/cfg_5.png" alt="">
+                    <div class="caption">CFG Image 5</div>
+                </div>
+            </div>
+        </div>
+
+        <br>
+        <h2>Part 1.7: Image-to-Image Translation</h2>
+
+        <div class="card">
+            <div class="card-text">
+                In this section, I took our original campanile image, added noise to it, and forced the diffusion model to denoise it using the CFG method from the previous section.
+            </div>
+            <div class="card-text">
+                I used different i_start values: [1, 3, 5, 7, 10, 20] to see how the amount of noise added affects the final denoised image. Here are the results using the prompt "a high quality photo" with a CFG scale of 7.0:
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/cfg_iter_1.png" alt="">
+                    <div class="caption">i_start = 1</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/cfg_iter_3.png" alt="">
+                    <div class="caption">i_start = 3</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/cfg_iter_5.png" alt="">
+                    <div class="caption">i_start = 5</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/cfg_iter_7.png" alt="">
+                    <div class="caption">i_start = 7</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/cfg_iter_10.png" alt="">
+                    <div class="caption">i_start = 10</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/cfg_iter_20.png" alt="">
+                    <div class="caption">i_start = 20</div>
+                </div>
+            </div>
+            <div class="card-text">
+                We can see that the higher the i_start, the closer the final image is to the original campanile image. This makes sense, since a higher i_start means less noise is added to the original image, so the model has an easier time denoising it back to the original.
+            </div>
+            <div class="card-text">
+                I tried this out with some of my own images as well:
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/yosemite.png" alt="">
+                    <div class="caption">Original Yosemite</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/yosemite_1.png" alt="">
+                    <div class="caption">i_start = 1</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/yosemite_3.png" alt="">
+                    <div class="caption">i_start = 3</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/yosemite_5.png" alt="">
+                    <div class="caption">i_start = 5</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/yosemite_7.png" alt="">
+                    <div class="caption">i_start = 7</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/yosemite_10.png" alt="">
+                    <div class="caption">i_start = 10</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/yosemite_20.png" alt="">
+                    <div class="caption">i_start = 20</div>
+                </div>
+            </div>
+
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/oxford.png" alt="">
+                    <div class="caption">Original Oxford</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/oxford_1.png" alt="">
+                    <div class="caption">i_start = 1</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/oxford_3.png" alt="">
+                    <div class="caption">i_start = 3</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/oxford_5.png" alt="">
+                    <div class="caption">i_start = 5</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/oxford_7.png" alt="">
+                    <div class="caption">i_start = 7</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/oxford_10.png" alt="">
+                    <div class="caption">i_start = 10</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/oxford_20.png" alt="">
+                    <div class="caption">i_start = 20</div>
+                </div>
+            </div>
+        </div>
+
+        <br>
+        <h2>Part 1.7.1: Editing Hand-Drawn and Web Images</h2>
+
+        <div class="card">
+            <div class="card-text">
+                I also experimented with a web image and some hand-drawn images. I used the same prompt, "a high quality photo", with a CFG scale of 7.0.
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/roger_original.png" alt="">
+                    <div class="caption">Original Web Image</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/roger_1.png" alt="">
+                    <div class="caption">i_start = 1</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/roger_3.png" alt="">
+                    <div class="caption">i_start = 3</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/roger_5.png" alt="">
+                    <div class="caption">i_start = 5</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/roger_7.png" alt="">
+                    <div class="caption">i_start = 7</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/roger_10.png" alt="">
+                    <div class="caption">i_start = 10</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/roger_20.png" alt="">
+                    <div class="caption">i_start = 20</div>
+                </div>
+            </div>
+
+            <div class="card-text">
+                Here's my own hand-drawn image of a cat next to a river, inspired by Warrior Cats.
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/riverclan_mini.png" alt="">
+                    <div class="caption">Original Hand-Drawn</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/riverclan_1.png" alt="">
+                    <div class="caption">i_start = 1</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/riverclan_3.png" alt="">
+                    <div class="caption">i_start = 3</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/riverclan_5.png" alt="">
+                    <div class="caption">i_start = 5</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/riverclan_7.png" alt="">
+                    <div class="caption">i_start = 7</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/riverclan_10.png" alt="">
+                    <div class="caption">i_start = 10</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/riverclan_20.png" alt="">
+                    <div class="caption">i_start = 20</div>
+                </div>
+            </div>
+            <div class="card-text">
+                Yeah, these didn't turn out too well. Here's one more hand-drawn image, and the results I got from denoising it:
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/christmas.png" alt="">
+                    <div class="caption">Christmas Drawing</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/christmas_1.png" alt="">
+                    <div class="caption">i_start = 1</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/christmas_3.png" alt="">
+                    <div class="caption">i_start = 3</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/christmas_5.png" alt="">
+                    <div class="caption">i_start = 5</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/christmas_7.png" alt="">
+                    <div class="caption">i_start = 7</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/christmas_10.png" alt="">
+                    <div class="caption">i_start = 10</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/christmas_20.png" alt="">
+                    <div class="caption">i_start = 20</div>
+                </div>
+            </div>
+        </div>
+
+        <br>
+        <h2>Part 1.7.2: Inpainting</h2>
+
+        <div class="card">
+            <div class="card-text">
+                Next, I implemented inpainting to replace a user-defined mask area in an image using the diffusion model with CFG.
+                I created a binary mask where the area to be inpainted is white and the rest is black. 
+            </div>
+            <div class="card-text">
+                The inpainting process works by:
+                <ul class="card-list">
+                    <li class="card-list-item">
+                        Starting from pure noise and running the iterative_denoise_cfg with scale = 7.0.
+                    </li>
+                    <li class="card-list-item">
+                        At every iteration, we "force" the pixels outside the mask to be equal to the original image pixels, while letting the pixels inside the mask be updated by the denoising process.
+                    </li>
+                </ul>
+                This only required a couple additional lines of code, once I had the mask created. Here are some of the results I got:
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/campanilie_mask.png" alt="">
+                    <div class="caption">Edit Mask</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/campanilie_hole.png" alt="">
+                    <div class="caption">Hole to Fill</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/campanile_inpainted.png" alt="">
+                    <div class="caption">Campanile Inpainted</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/chania_mask.png" alt="">
+                    <div class="caption">Edit Mask</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/chania_hole.png" alt="">
+                    <div class="caption">Hole to Fill</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/chania_inpainted.png" alt="">
+                    <div class="caption">Chania Inpainted</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/sunset_mask.png" alt="">
+                    <div class="caption">Edit Mask</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/sunset_hole.png" alt="">
+                    <div class="caption">Hole to Fill</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/sunset_inpainted.png" alt="">
+                    <div class="caption">Sunset Inpainted</div>
+                </div>
+            </div>
+        </div>
+
+        <br>
+        <h2>Part 1.7.3: Text-Conditioned Image-to-Image Translation</h2>
+
+        <div class="card">
+            <div class="card-text">
+                In this section, I guided the image diffusion model with my own text prompts to edit an image.
+                I used the same CFG method as before, but this time I provided new text prompts.
+            </div>
+            <div class="card-text">
+                Campanile image with the prompt: "a city in the rain"
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/city_1.png" alt="">
+                    <div class="caption">i_start = 1</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/city_3.png" alt="">
+                    <div class="caption">i_start = 3</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/city_5.png" alt="">
+                    <div class="caption">i_start = 5</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/city_7.png" alt="">
+                    <div class="caption">i_start = 7</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/city_10.png" alt="">
+                    <div class="caption">i_start = 10</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/city_20.png" alt="">
+                    <div class="caption">i_start = 20</div>
+                </div>
+            </div>
+            <br>
+            <div class="card-text">
+                Oxford image with the prompt: "a photo of Roger Federer hitting a forehand on a grass tennis court"
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/oxford_conditional_1.png" alt="">
+                    <div class="caption">i_start = 1</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/oxford_conditional_3.png" alt="">
+                    <div class="caption">i_start = 3</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/oxford_conditional_5.png" alt="">
+                    <div class="caption">i_start = 5</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/oxford_conditional_7.png" alt="">
+                    <div class="caption">i_start = 7</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/oxford_conditional_10.png" alt="">
+                    <div class="caption">i_start = 10</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/oxford_conditional_20.png" alt="">
+                    <div class="caption">i_start = 20</div>
+                </div>
+            </div>
+            <br>
+            <div class="card-text">
+                Yosemite image with the prompt: "a sunset over a beautiful tsunami"
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/yosemite_conditional_1.png" alt="">
+                    <div class="caption">i_start = 1</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/yosemite_conditional_3.png" alt="">
+                    <div class="caption">i_start = 3</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/yosemite_conditional_5.png" alt="">
+                    <div class="caption">i_start = 5</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image-third">
+                    <img src="./images/yosemite_conditional_7.png" alt="">
+                    <div class="caption">i_start = 7</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/yosemite_conditional_10.png" alt="">
+                    <div class="caption">i_start = 10</div>
+                </div>
+                <div class="image-third">
+                    <img src="./images/yosemite_conditional_20.png" alt="">
+                    <div class="caption">i_start = 20</div>
+                </div>
+            </div>
+            
+        </div>
+
+        <br>
+        <h2>Part 1.8: Visual Anagrams</h2>
+
+        <div class="card">
+            <div class="card-text">
+                In this section, I created visual anagrams that look like different images when you flip them upside down. To achieve this, at each time step we have to:
+                <ul class="card-list">
+                    <li class="card-list-item">Run the CFG denoiser twice, once on each prompt and keep their noise estimates</li>
+                    <li class="card-list-item">For the second prompt, flip the image upside down before running CFG denoising</li>
+                    <li class="card-list-item">Unflip the image and average the two noise estimates, using the resulting image</li>
+                </ul>
+            </div>
+            <div class="card-text">
+                I ran this process and created several visual anagrams. The first one uses the prompts:
+                <ul class="card-list">
+                    <li class="card-list-item">Prompt 1: "an oil painting of an old man"</li>
+                    <li class="card-list-item">Prompt 2: "an oil painting of people around a campfire"</li>
+                </ul>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/anagram_1.png" alt="">
+                    <div class="caption">Old Man</div>
+                </div>
+                <div class="image">
+                    <img src="./images/anagram_1.png" alt="" style="transform: rotate(180deg);">
+                    <div class="caption">People Around Campfire</div>
+                </div>
+            </div>
+            <br>
+            <div class="card-text">
+                The second visual anagram uses the prompts:
+                <ul class="card-list">
+                    <li class="card-list-item">Prompt 1: "a squirrel eating an acorn"</li>
+                    <li class="card-list-item">Prompt 2: "a christmas tree"</li>
+                </ul>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/anagram_2.png" alt="">
+                    <div class="caption">Squirrel Eating Acorn</div>
+                </div>
+                <div class="image">
+                    <img src="./images/anagram_2.png" alt="" style="transform: rotate(180deg);">
+                    <div class="caption">Christmas Tree</div>
+                </div>
+            </div>
+            <br>
+            <div class="card-text">
+                Finally, the third visual anagram uses the prompts:
+                <ul class="card-list">
+                    <li class="card-list-item">Prompt 1: "a photo of a tyrannosaurus rex"</li>
+                    <li class="card-list-item">Prompt 2: "a mountain over a lake"</li>
+                </ul>   
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/anagram_3.png" alt="">
+                    <div class="caption">Tyrannosaurus Rex</div>
+                </div>
+                <div class="image">
+                    <img src="./images/anagram_3.png" alt="" style="transform: rotate(180deg);">
+                    <div class="caption">Mountain Over Lake</div>
+                </div>
+            </div>
+        </div>
+
+        <br>
+        <h2>Part 1.9: Hybrid Images</h2>
+
+        <div class="card">
+            <div class="card-text">
+                Finally, let's create some hybrid images with factorized diffusion. Hybrid images combine the low-frequency components of one image with the high-frequency components of another image. The high-frequency component is visible when viewed up close, while the low-frequency component is visible when viewed from a distance.
+            </div>
+            <div class="card-text">
+                The technique is similar to the one in the previous section. We will create a composite noise estimate epsilon, by estimating the noise with two different text prompts, and then combining low frequencies from one noise estimate with high frequencies of the other. The algorithm is:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/hybrid_formula.png" alt="">
+                    <div class="caption">Hybrid Image Formula</div>
+                </div>
+            </div>
+            <div class="card-text">
+                My first hybrid image uses the prompts:
+                <ul class="card-list">
+                    <li class="card-list-item">Prompt 1: "a unicorn" (high-pass)</li>
+                    <li class="card-list-item">Prompt 2: "a beautiful sunset over a tsunami" (low-pass)</li>
+                </ul>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/unicorn.png" alt="">
+                    <div class="caption">Unicorn + Sunset Hybrid</div>
+                </div>
+            </div>
+            <div class="card-text">
+                My second hybrid image uses the prompts:
+                <ul class="card-list">
+                    <li class="card-list-item">Prompt 1: "a castle" (high-pass)</li>
+                    <li class="card-list-item">Prompt 2: "a mountain over a lake" (low-pass)</li>
+                </ul>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/mountain_castle.png" alt="">
+                    <div class="caption">Castle + Mountain Hybrid</div>
+                </div>
+            </div>
+
+        </div>
+      
+    </div>
+        
+    
+</body>
+</html>
