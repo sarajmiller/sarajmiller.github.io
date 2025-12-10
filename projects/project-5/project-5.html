@@ -4,7 +4,7 @@
     <link rel="stylesheet" href="../../css/fonts.css">
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="preload" href="/fonts/Monocraft.woff2" as="font" type="./fonts/woff2" crossorigin="anonymous">
-    <title>CS 180 Project 3</title>
+    <title>CS 180 Project 5</title>
     <script src="../../leaves.js" defer></script>
 </head>
 <body>
@@ -918,6 +918,421 @@
             </div>
 
         </div>
+
+        <br>
+        <h1>Part B: Flow Matching from Scratch!</h1>
+
+        <div class="card">
+            <div class="card-text">
+                In this part, I trained my own diffusion models from scratch on the MNNIST dataset using flow matching.
+            </div>
+        </div>
+
+        <br>
+        <h1>Part 1: Training a Single-Step Denoising UNet</h1>
+
+        <div class="card">
+            <div class="card-text">
+                I warmed up by building a simple one-step denoiser. Given a noisy image z, we can train a denoiser D_theta to map z to a clean image, optimizing over L2 loss like so:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/l2.png" alt="">
+                    <div class="caption">L2 Loss</div>
+                </div>
+            </div>
+        </div>
+
+        <br>
+        <h2>Part 1.1: Implementing the UNet</h2>
+        <div class="card">
+            <div class="card-text">
+                I implemented the denoiser as a simple UNet, with a few downsampling and upsampling blocks with skip connections. Here is the architecture of the UNet I used:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/unconditional_unet.png" alt="">
+                    <div class="caption">Unconditional UNet</div>
+                </div>
+            </div>
+            <div class="card-text">
+                The diagram uses some standard tensor operations, defined as follows:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/standard_unet.png" alt="">
+                    <div class="caption">Standard UNet Operations</div>
+                </div>
+            </div>
+        </div>
+
+        <br>
+        <h2>Part 1.2: Using the UNet to Train a Denoiser</h2>
+        <div class="card">
+            <div class="card-text">To train the UNet denoiser, I generated noisy MNIST images by adding Gaussian noise with varying sigma values in [0, 0.2, 0.4, 0.6, 0.8, 1]. For each training batch, we can generate the noisy image z from x using the following noising process:</div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/noise_formula.png" alt="">
+                    <div class="caption">Noising Process</div>
+                </div>
+            </div>
+            <div class="card-text">
+                Here are a few samples visualized over all the noise levels:
+            </div>
+
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/sigma_noises.png" alt="" style="width: 600px;">
+                    <div class="caption">MNIST digits with varying noise</div>
+                </div>
+            </div>
+        </div>
+
+        <br>
+        <h2>Part 1.2.1: Training</h2>
+        <div class="card">
+            <div class="card-text">Now, I trained the model to perform denoising on the MNIST dataset. I used a noise level of sigma = 0.5 over 5 epochs, with a batch size of 256. I also used an Adam optimizer with a learning rate of 1e-4. </div>
+            <div class="card-text">
+            The training objective here was to minimize the L2 loss between the denoised outputs and the original clean images. Here are the results of my training:
+            </div>
+
+        <div class="image-container">
+            <div class="image">
+                <img src="./images/training_loss.png" alt="" style="width: 600px;">
+                <div class="caption">Training Loss Curve</div>
+            </div>
+        </div>
+
+        <div class="image-container">
+            <div class="image">
+                <img src="./images/noisy_initial.png" alt="" style="width: 600px;">
+                <div class="caption">Noisy MNIST Images (sigma=0.5)</div>
+            </div>
+        </div>
+        <div class="image-container">
+            <div class="image">
+                <img src="./images/test_epoch_0.png" alt="" style="width: 600px;">
+                <div class="caption">Outputs After First Epoch</div>
+            </div>
+        </div>
+        <div class="image-container">
+            <div class="image">
+                <img src="./images/test_epoch_4.png" alt="" style="width: 600px;">
+                <div class="caption">Outputs After Fifth Epoch</div>
+            </div>
+        </div>
+        <div class="image-container">
+            <div class="image">
+                <img src="./images/original.png" alt="" style="width: 600px;">
+                <div class="caption">Original MNIST Images</div>
+            </div>
+        </div>
+        <div class="card-text">Looks pretty good!</div>
+        </div>
+
+        <br>
+        <h2>Part 1.2.2: Out-of-Distribution Testing</h2>
+        <div class="card">
+            <div class="card-text">
+                This denoiser was trained on a noise level of 0.5 only. Let's see how it performs on other noise levels that it hasn't seen during training.
+            </div>
+            <div class="card-text">
+                For each image, the original noisy images are on the top, and the denoised outputs are on the bottom.
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/test_0.0.png" alt="" style="width: 800px;">
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/test_0.2.png" alt="" style="width: 800px;">
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/test_0.4.png" alt="" style="width: 800px;">
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/test_0.5.png" alt="" style="width: 800px;">
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/test_0.6.png" alt="" style="width: 800px;">
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/test_0.8.png" alt="" style="width: 800px;">
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/test_1.0.png" alt="" style="width: 800px;">
+                </div>
+            </div>
+            <br>
+            <div class="card-text">
+                As we can see, the denoiser performs well on noise levels close to 0.5 or below, but struggles with very high noise levels. This is expected, since the model was only trained on a single noise level.
+            </div>
+        </div>
+
+        <br>
+        <h2>Part 1.2.3: Denoising Pure Noise</h2>
+
+        <div class="card">
+            <div class="card-text">
+                What happens if we just try to denoise pure, random Gaussian noise? I trained a model using the same process as part 1.2.1, except this time I used pure noise as input during training. I used the exact same model and training parameters as before.
+            </div>
+            <div class="card-text">
+                Here's the training loss curve:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/pure_training_loss.png" alt="" style="width: 600px;">
+                </div>
+            </div>
+            <br>
+            <div class="card-text">
+                And here are the test inputs and the results after 1 and 5 epochs:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/test_pure_noise.png" alt="" style="width: 800px;">
+                    <div class="caption">Pure Noise Test Input</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/pure_noise_1.png" alt="" style="width: 800px;">
+                    <div class="caption">Sample Results after 1 Epoch</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/pure_noise_5.png" alt="" style="width: 800px;">
+                    <div class="caption">Sample Results after 5 Epochs</div>
+                </div>
+            </div>
+            <div class="card-text">
+                The model is attempting to perform image generation by denoising pure noise, but the results obviously don't look too great. A possible reason that the images look like this is that the model is denoising pure noise over a set of class labels (0-9), so the model is just learning the "average" of all the digits provided during training.
+            </div>
+        </div>
+
+        <br>
+        <h1>Part 2: Training a Flow Matching Model</h1>
+
+        <br>
+        <h2>Part 2.1: Adding Time Conditioning to UNet</h2>
+        <div class="card">
+            <div class="card-text">
+                I was able to inject a scalar t into my UNet model by adding two new operators to my architecture:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/conditional_arch_fm.png" alt="">
+                    <div class="caption">New Model Architecture</div>
+                </div>
+            </div>
+            <div class="card-text">
+                This uses a new operator called an FCBlock (fully connected block), which we use to inject the conditioning signal into the UNet:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/fc_block.png" alt="">
+                    <div class="caption">FCBlock for Conditioning</div>
+                </div>
+            </div>
+        </div>
+
+        <br>
+        <h2>Part 2.2: Training the UNet</h2>
+        <div class="card">
+            <div class="card-text">To train, we essentially pick a random image x_1 from the training set, a random timestep t between 0 and 1, and add noise to generate x_t. Then, we optimize the MSE loss to train the denoiser to predict the flow at x_t.</div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/algo1_t_only_fm.png" alt="" style="width: 600px;">
+                    <div class="caption">Training Time-Conditioned UNet</div>
+                </div>
+            </div>
+            <div class="card-text">
+                We repeat this for different images until we are happy. I used the following parameters:
+                <ul class="card-list">
+                    <li class="card-list-item">Batch Size: 64</li>
+                    <li class="card-list-item">Hidden Dimensions: 64</li>
+                    <li class="card-list-item">Learning Rate: 1e-2</li>
+                    <li class="card-list-item">Number of Epochs (num_epochs): 20</li>
+                    <li class="card-list-item">Exponential Learning Rate Decay Scheduler: 0.1^(1/num_epochs)</li>
+                </ul>
+            </div>
+            <div class="card-text">
+                Here is the training loss curve I obtained over the whole training process:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/1.2.2.png" alt="" style="width: 600px;">
+                    <div class="caption">Flow Matching Training Loss Curve</div>
+                </div>
+            </div>
+            <div class="card-text">
+                The training loss converged to about .16.
+            </div>
+        </div>
+
+        <br>
+        <h2>Part 2.3: Sampling from the UNet</h2>
+        <div class="card">
+            <div class="card-text">
+                During training, we can now use our UNet for iterative denoising using the following algorithm:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/algo2_t_only_fm.png" alt="" style="width: 600px;">
+                    <div class="caption">Sampling Algorithm from Time-Conditioned UNet</div>
+                </div>
+            </div>
+            <div class="card-text">
+                The results aren't perfect, but we can see some legible digits emerge after 1, 5, and 10 epochs:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/flow_0.png" alt="" style="width: 600px;">
+                    <div class="caption">Sampling Results after 1 Epoch</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/flow_5.png" alt="" style="width: 600px;">
+                    <div class="caption">Sampling Results after 5 Epochs</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/flow_10.png" alt="" style="width: 600px;">
+                    <div class="caption">Sampling Results after 10 Epochs</div>
+                </div>
+            </div>
+
+        </div>
+
+        <br>
+        <h2>Part 2.4: Adding Class-Conditioning to UNet</h2>
+        <div class="card">
+            <div class="card-text">
+                To make the results better and give us more control for image generation, I added class-conditioning to my UNet model based on the class of the digit (0-9). I implemented this by adding 2 more FCBlocsk to my layers to inject the class label information.
+            </div>
+            <div class="card-text">
+                Instead of the class c being a single scalar, I converted c to a one-hot vector. I still want my UNet to work without it being conditioned on the class, so I implemented a dropout where 10% of the time I dropped the class conditioning vector c and set it to 0.
+            </div>
+            <div class="card-text">
+                I applied the conditioning by modifying the following lines of my UNet architecture:
+                <ul class="card-list">
+                    <li class="card-list-item">
+                        unflatten = c1 * unflatten + t1
+                    </li>
+                    <li class="card-list-item">
+                        upblock1 = c2 * upblock1 + t2
+                    </li>
+                </ul>
+                Where c1, c2, t1, t2 are outputs from the new FCBlocks that take in the class conditioning vector c and the time-conditioning vector t.
+            </div>
+        </div>
+
+        <br>
+        <h2>Part 2.5: Training the Class-Conditioned UNet</h2>
+        <div class="card">
+            <div class="card-text">
+                The training for this section was the same as the time-only training from part 2.2, except now we also provide the class label c for each image in the batch and apply class dropout with probability 0.1. Here's the algorithm I followed:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/algo3_c_fm.png" alt="" style="width: 600px;">
+                    <div class="caption">Training Class-Conditioned UNet</div>
+                </div>
+            </div>
+            <div class="card-text">
+                Here's the training loss curve I obtained over the whole training process:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/class_conditioned_loss.png" alt="" style="width: 600px;">
+                    <div class="caption">Class-Conditioned Training Loss Curve</div>
+                </div>
+            </div>
+        </div>
+
+        <br>
+        <h2>Part 2.6: Sampling from the Class-Conditioned UNet</h2>
+        <div class="card">
+            <div class="card-text">
+                I sampled from the class-conditioned UNet over different epochs with a CFG scale of 5.0, using the following algorithm to sample:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/algo4_c_fm.png" alt="" style="width: 600px;">
+                    <div class="caption">Sampling from Class-Conditioned UNet</div>
+                </div>
+            </div>
+            <br>
+            <div class="card-text">
+                Here are the sampling results after 1, 5, and 10 epochs for each digit class from 0 to 9:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/scheduled_1.png" alt="" style="width: 600px;">
+                    <div class="caption">Sampling Results after 1 Epoch</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/scheduled_5.png" alt="" style="width: 600px;">
+                    <div class="caption">Sampling Results after 5 Epochs</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/scheduled_10.png" alt="" style="width: 600px;">
+                    <div class="caption">Sampling Results after 10 Epochs</div>
+                </div>
+            </div>
+            
+
+            <div class="card-text">
+                After 10 epochs, the results look quite clean and distinct! These generated digits are much better than those generated by the time-only UNet.
+            </div>
+            <br>
+            <div class="card-text">
+                I also experimented with training without the learning rate scheduler. To compensate for the loss of the scheduler, I used a slightly lower learning rate of 5e-3. Here is the same visualization after training the model without the scheduler across epochs:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/class_cond_1.png" alt="" style="width: 600px;">
+                    <div class="caption">Sampling Results after 1 Epoch</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/class_cond_5.png" alt="" style="width: 600px;">
+                    <div class="caption">Sampling Results after 5 Epochs</div>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/class_cond_10.png" alt="" style="width: 600px;">
+                    <div class="caption">Sampling Results after 10 Epochs</div>
+                </div>
+            </div>
+
+            <div class="card-text">
+                The results are still quite good, showing that the model is able to learn the class-conditioned denoising task effectively. 
+                As we can see from the results, the quality of the generated digits is quite good even without the scheduler.
+            </div>
+        </div>
+
+        
       
     </div>
         
