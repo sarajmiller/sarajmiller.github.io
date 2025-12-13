@@ -93,6 +93,22 @@
         <div class="card">
             <div class="card-text">
                 I implemented the forward(im, t) function that takes an image and a time step t and adds noise to the image according to the diffusion model's cumulative alpha value at time t. 
+                The forward process is defined by:
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/forward_formula1.png" alt="">
+                </div>
+            </div>
+            <div class="card-text">
+                which is equivalent to computing
+            </div>
+            <div class="image-container">
+                <div class="image">
+                    <img src="./images/forward_formula2.png" alt="">
+                </div>
+            </div>
+            <div class="card-text">
                 Here are some of the results of adding noise to the Berkeley Campanile image at different time steps:
             </div>
             
@@ -118,16 +134,13 @@
             </div>
 
             <div class="card-text">
-                Here's the code I used to implement the forward process:
+                Here's a code snippet I used to implement the forward process:
 
-                <pre><code>def forward(im, t):
-  with torch.no_grad():
+                <pre><code>
+                im_noisy = torch.sqrt(alpha_t) * im + torch.sqrt(1 - alpha_t) * epsilon
+                </code></pre>
 
-    alpha_t = alphas_cumprod[t]
-    epsilon = torch.randn_like(im)
-    im_noisy = torch.sqrt(alpha_t) * im + torch.sqrt(1 - alpha_t) * epsilon
-
-  return im_noisy</code></pre>
+                Where epsilon is the random noise, and alpha_t is the cumulative alpha value at time t.
 
             </div>
         </div>
